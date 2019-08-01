@@ -1,11 +1,18 @@
-import { List } from "immutable";
-import { ImageModel } from "../../models/ImageModel";
-import React from "react";
+import { List } from 'immutable';
+import { ImageModel } from '../../models/ImageModel';
+import React from 'react';
+import { ImagesListItem } from '../ImageListItem/ImageListItem';
 
 export interface ImagesListProps {
   images: List<ImageModel>;
 }
 
 export const ImagesList: React.FC<ImagesListProps> = props => {
-  return <div>This is images list component.</div>;
+  return (
+    <ul>
+      {props.images.map(image => (
+        <ImagesListItem image={image} />
+      ))}
+    </ul>
+  );
 };

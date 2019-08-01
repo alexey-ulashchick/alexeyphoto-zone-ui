@@ -1,7 +1,12 @@
+export interface IImageModel {
+    id: string;
+    path: string;
+}
+
 /**
  * ImageMdodel. Contains meta infromation about image.
  */
-export class ImageModel {
+export class ImageModel implements IImageModel{
 
     id: string;
     path: string;
@@ -11,4 +16,7 @@ export class ImageModel {
         this.path = path;
     }
 
+    static fromObj(obj: IImageModel) {
+        return new ImageModel(obj.id, obj.path);
+    }
 }
