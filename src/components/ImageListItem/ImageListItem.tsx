@@ -7,8 +7,8 @@ export interface ImagesListItemProps {
 }
 
 const imgClass = style({
-    width: '100px',
-    height: '100px'
+    maxWidth: '100px',
+    maxHeight: '100px',
 });
 
 export const ImagesListItem: React.FC<ImagesListItemProps> = props => {

@@ -10,8 +10,8 @@ export interface ImagesListProps {
 export const ImagesList: React.FC<ImagesListProps> = props => {
   return (
     <ul>
-      {props.images.map(image => (
-        <ImagesListItem image={image} />
+      {props.images.map((image, index) => (
+        <ImagesListItem key={index} image={image} />
       ))}
     </ul>
   );
