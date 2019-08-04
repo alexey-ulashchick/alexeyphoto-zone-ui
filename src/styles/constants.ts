@@ -10,6 +10,15 @@ export function makeOverlay(baseColor: ColorHelper, opacity: number): ColorHelpe
   return rgba(baseColor.red(), baseColor.blue(), baseColor.green(), opacity);
 }
 
+
+/** Adjust font size to specified value and set height but in original units */
+export function fontSizeAndHeight(fontEmSize: number, heightEm: number): NestedCSSProperties {
+    return {
+        fontSize: `${fontEmSize}em`,
+        height: `calc(calc(1em / ${fontEmSize}) * ${heightEm})`
+    };
+}
+
 export const flexWithCenteredContent: NestedCSSProperties = {
   display: 'flex',
   alignItems: 'center',
