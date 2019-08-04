@@ -28,3 +28,7 @@ export const flexWithCenteredContent: NestedCSSProperties = {
 export const textShadow: NestedCSSProperties = {
     textShadow: `1px 2px 4px ${BLACK.toString()}`
 }
+
+export const hoverAnimation: NestedCSSProperties = {
+    transition: '0.3s all ease'
+}
