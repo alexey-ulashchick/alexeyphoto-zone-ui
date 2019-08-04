@@ -11,15 +11,10 @@ const greeting: string = 'alexeyphoto.zone';
 //   new ImageModel('2', 'https://alexeyphoto.zone/assets/images/3-20180524-192817/768.jpg')
 // ]);
 
-const app = style({
-  height: '100%'
-});
 
 const App: React.FC = () => {
   return (
-    <div className={app}>
       <HomePage title={greeting}/>
-    </div>
   );
 };
 
