@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { style } from 'typestyle';
-import { YELLOW, makeOverlay, GREY, WHITE, flexWithCenteredContent } from '../../styles/constants';
+import { YELLOW, makeOverlay, GREY, WHITE, flexWithCenteredContent, textShadow } from '../../styles/constants';
 
 const header = style({
   backgroundColor: makeOverlay(GREY, 0.5).toString()
@@ -11,7 +11,7 @@ const title = style({
   height: 'calc(calc(1em / 3) * 5.5)',
   fontFamily: `"Kaushan Script", cursive`,
   color: YELLOW.toString(),
-}, flexWithCenteredContent);
+}, flexWithCenteredContent, textShadow);
 
 const divider = style({
   height: '1px',
@@ -25,17 +25,17 @@ const subHeader = style({
   color: WHITE.toString(),
   textTransform: 'uppercase',
   height: 'calc(calc(1em / 1.125) * 3)',
-}, flexWithCenteredContent);
+}, flexWithCenteredContent, textShadow);
 
 export interface HeaderProps {
   title: string;
   subTitle: string;
-
+  className: string;
 }
 
 export function Header(props: HeaderProps) {
   return (
-    <header className={header}>
+    <header className={`${header} ${props.className}`}>
       <div className={title}>{props.title}</div>
       <div className={divider} />
       <div className={subHeader}>{props.subTitle}</div>
