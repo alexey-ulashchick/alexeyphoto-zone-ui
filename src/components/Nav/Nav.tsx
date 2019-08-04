@@ -14,10 +14,17 @@ const navList = style(
     background: `linear-gradient(270deg, rgba(51, 51, 51, 0.65) 0%, rgba(51, 51, 51, 0) 50%)`
   },
   textShadow,
-  media({ maxWidth: '600px' }, {
-    flexDirection: 'column',
-    alignItems: 'end'
-  }),
+  media(
+    { maxWidth: '1024px' },{
+      fontSize: '1em',
+    }),
+  media(
+    { maxWidth: '600px' },
+    {
+      flexDirection: 'column',
+      alignItems: 'end'
+    }
+  )
 );
 
 const navItem = style(flexWithCenteredContent, hoverAnimation, {

@@ -1,6 +1,6 @@
 import React, { useState, SetStateAction, Dispatch } from 'react';
 import { Header } from '../../components/Header/Header';
-import { style } from 'typestyle';
+import { style, media } from 'typestyle';
 import { Nav } from '../../components/Nav/Nav';
 
 const homePage = style({
@@ -11,19 +11,37 @@ const homePage = style({
   backgroundPosition: '50% 50%'
 });
 
-const header = style({
-  position: 'fixed',
-  bottom: '5em',
-  left: 0,
-  right: 0
-});
+const header = style(
+  {
+    position: 'fixed',
+    bottom: '5em',
+    left: 0,
+    right: 0
+  },
+  media(
+    { maxWidth: '600px' },
+    {
+      top: '4em',
+      bottom: 'inherit'
+    }
+  )
+);
 
-const nav = style({
-  position: 'fixed',
-  top: '5em',
-  left: 0,
-  right: 0
-})
+const nav = style(
+  {
+    position: 'fixed',
+    top: '5em',
+    left: 0,
+    right: 0
+  },
+  media(
+    { maxWidth: '600px' },
+    {
+      bottom: '5em',
+      top: 'inherit'
+    }
+  )
+);
 
 interface IProps {
   title: string;
@@ -35,7 +53,7 @@ export const HomePage: React.FC<IProps> = (props: IProps) => {
   return (
     <div className={homePage} onClick={() => setNumber(counter + 1)}>
       <Header className={header} title={'Travelling & Photography'} subTitle={'alexeyphoto.zone'} />
-      <Nav className={nav}/>
+      <Nav className={nav} />
     </div>
   );
 };
