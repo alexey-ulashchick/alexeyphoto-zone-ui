@@ -1,119 +1,123 @@
 import * as React from 'react';
-import { Range } from 'immutable';
-import { ImageStyle, GalleryScrollableContainerStyle, DebuggingDiv, GalleryContainer, FakeImageStyle, topLine, IMG_HEIGTH, IMG_GAP } from './GalleryStyle';
+import { Range, List } from 'immutable';
+import { ImageStyle, GalleryScrollableContainerStyle, DebuggingDiv, GalleryContainer, FakeImageStyle, IMG_HEIGTH, IMG_GAP, PILE_ZONE } from './GalleryStyle';
 import { useEffect } from 'react';
 
-type visibilityFn = (scrollTop: number) => {start: number, end: number} | null;
-
+type visibilityFn = (scrollTop: number) => { start: number; end: number } | null;
+type positionFn = (index: number, scrollTop: number) => { top: string; left: string; zIndex: number };
 
 function getVisibilityCalcFn(viewportHeight: number, visibilityPadding: number, blockHeight: number, gap: number): visibilityFn {
-  const SCROLL_AREA_START = viewportHeight * visibilityPadding;
   const BLOCK = blockHeight + gap;
 
-  return (scrollTop: number):  {start: number, end: number} | null => {
+  return (scrollTop: number): { start: number; end: number } | null => {
     const end = scrollTop + viewportHeight;
 
     const firstPotentialBlock = 1 + Math.floor((scrollTop - BLOCK) / BLOCK);
-    const firstBlock = scrollTop + SCROLL_AREA_START < BLOCK + firstPotentialBlock * BLOCK ? firstPotentialBlock : firstPotentialBlock + 1;
+    const firstBlock = scrollTop + visibilityPadding < BLOCK + firstPotentialBlock * BLOCK ? firstPotentialBlock : firstPotentialBlock + 1;
 
     const lastPotentialBlock = Math.floor((end - gap) / BLOCK);
-    const lastBlock = end - SCROLL_AREA_START > gap + lastPotentialBlock * BLOCK ? lastPotentialBlock : lastPotentialBlock - 1;
+    const lastBlock = end - visibilityPadding > gap + lastPotentialBlock * BLOCK ? lastPotentialBlock : lastPotentialBlock - 1;
 
-    return firstBlock > lastBlock ? null : {start: firstBlock, end: lastBlock};
+    return firstBlock > lastBlock ? null : { start: firstBlock, end: lastBlock };
   };
 }
 
+function getPositionCalcFn(viewportHeight: number, visibilityPadding: number, imgHeight: number, gap: number): positionFn {
+  const BLOCK = imgHeight + gap;
+  const deckSize = 40;
+
+  return (index: number, scrollTop: number): { top: string; left: string; zIndex: number } => {
+    const top = scrollTop + visibilityPadding;
+    const bottom = scrollTop + viewportHeight - visibilityPadding;
+
+    //If Block is higher than top bar
+    if (BLOCK * (index + 1) < top) {
+      return {
+        top: `${visibilityPadding - imgHeight}px`,
+        left: `15vw`,
+        zIndex: index
+      };
+    } else if (BLOCK * (index + 1) - imgHeight > bottom) {
+      return {
+        top: `calc(100% - ${visibilityPadding}px)`,
+        left: '15vw',
+        zIndex: deckSize - 1 - index
+      };
+    } else {
+      return {
+        top: `${BLOCK * (index + 1) - imgHeight - scrollTop}px`,
+        left: '15vw',
+        zIndex: deckSize
+      };
+    }
+  };
+}
 
 export interface IGalleyProps {}
 
 export const Gallery = React.memo(
   (props: IGalleyProps) => {
+    const ANGLE_VARIATION = 10; // Angle randomization factor
+    const OFFSET_VARIATION = 30; // Offset randomization factor
     const hash = Date.now();
-    console.log('I never going to rerender');
-    const list = Range(0, 40)
-      .map(() => Math.round(Math.random() * 20 - 10))
+    const randomized: List<{ offsetX: number; offsetY: number; deg: number }> = Range(0, 40)
+      .map(() => ({
+        offsetX: Math.round(Math.random() * OFFSET_VARIATION),
+        offsetY: Math.round(Math.random() * OFFSET_VARIATION),
+        deg: Math.round(Math.random() * ANGLE_VARIATION * 2 - ANGLE_VARIATION)
+      }))
       .toList();
+    console.log(randomized.toJS());
+
     const hashMap = new Map<number, HTMLElement>();
-
-
-    const PILE_ZONE = 0.15; //%
 
     useEffect(() => {
       const debuggerDiv: HTMLElement = document.getElementById('debugger')!;
+
       const scrollableContainer: HTMLElement = document.getElementById(`${hash}_scrollableContainer`)!;
-
       const getVisibleBlocks: visibilityFn = getVisibilityCalcFn(scrollableContainer.clientHeight, PILE_ZONE, IMG_HEIGTH, IMG_GAP);
+      const getPosition: positionFn = getPositionCalcFn(scrollableContainer.clientHeight, PILE_ZONE, IMG_HEIGTH, IMG_GAP);
 
-      list.forEach((_, index) => {
-        hashMap.set(index, document.getElementById(`${hash}_${index}`)!);
+      Range(0, 40).forEach(index => {
+        const el: HTMLElement = document.getElementById(`${hash}_${index}`)!;
+
+        hashMap.set(index, el);
+
+        const { top, left, zIndex } = getPosition(index, scrollableContainer.scrollTop);
+        el.style.top = top;
+        el.style.left = left;
+        el.style.zIndex = String(zIndex);
+        el.style.visibility = 'inherit';
       });
+
+      let currentBlocks = getVisibleBlocks(scrollableContainer.scrollTop);
 
       scrollableContainer.addEventListener('scroll', () =>
         requestAnimationFrame(() => {
-          debuggerDiv.innerHTML = `[${getVisibleBlocks(scrollableContainer.scrollTop)}]`;
+          debuggerDiv.innerHTML = `[${JSON.stringify(getVisibleBlocks(scrollableContainer.scrollTop))}]`;
 
-          // debuggerDiv.innerHTML = `sroll=${start + SCROLL_AREA_START}, [${firstBlock},${lastBlock}]`;
+          const newBlocks = getVisibleBlocks(scrollableContainer.scrollTop);
 
-          // for (let index = firstBlock; index <= lastBlock; index++) {
-          // const deg = list.get(index)!;
-          // const imgCenter = IMG_HEIGTH / 2 + index * (IMG_HEIGTH + IMG_GAP);
+          if (currentBlocks === null && newBlocks === null) {
+            return;
+          }
 
-          // //Max distanse from center of the viewport
-          // const max = HEIGHT / 2 + IMG_HEIGTH / 2;
-          // const distance = start + HEIGHT / 2 - imgCenter;
-          // const k = distance / max;
+          const { start, end } =
+            currentBlocks === null
+              ? newBlocks!
+              : newBlocks === null
+              ? currentBlocks!
+              : { start: Math.min(currentBlocks.start, newBlocks.start), end: Math.max(currentBlocks.end, newBlocks.end) };
 
-          // debuggerDiv.innerHTML += `<div>[${index}]=${list.get(index)}, 1-k=${1 - Math.abs(k)}</div>`;
+          for (let index = start; index <= end; index++) {
+            const { top, left, zIndex } = getPosition(index, scrollableContainer.scrollTop);
+            const el = hashMap.get(index)!;
+            el.style.top = top;
+            el.style.left = left;
+            el.style.zIndex = String(zIndex);
+          }
 
-          // if (1 - Math.abs(k) > 0.3) {
-          //   if (sticked.has(index)) {
-          //     sticked.delete(index);
-          //     hashMap.get(index)!.style.visibility = 'inherit';
-          //     if (clonesMap.has(index)) {
-          //       clonesMap.get(index)!.parentNode!.removeChild(clonesMap.get(index)!);
-          //     }
-          //   }
-          //   // hashMap.get(index)!.style.transform = `rotate(${k * deg}deg) scale(${0.5 + 0.5 * (1 - Math.abs(k))})`;
-          //   // hashMap.get(index)!.style.transform = `rotate(${k * deg}deg)`;
-          // } else if (!sticked.has(index)) {
-          //   console.log('here');
-          //   sticked.add(index);
-          //   const clone: HTMLElement = hashMap.get(index)!.cloneNode(true) as HTMLElement;
-          //   const rect = hashMap.get(index)!.getBoundingClientRect();
-          //   console.log(rect);
-
-          //   clone.setAttribute('id', `${clone}_${clone.getAttribute('id')}`);
-          //   clone.style.transform = hashMap.get(index)!.style.transform;
-          //   clone.style.position = 'absolute';
-          //   clone.style.top = `${rect.top}px`;
-          //   clone.style.left = `${rect.left}px`;
-          //   clone.style.transition = '0.2s all ease';
-          //   clone.style.zIndex = '0';
-          //   scrollableContainer.appendChild(clone);
-          //   clonesMap.set(index, clone);
-          //   requestAnimationFrame(() => {
-          //     if (k > 0) {
-          //       clone.style.top = '-150px';
-          //     } else {
-          //     }
-          //     // clone.style.top = '0';
-          //     // clone.style.left = '0';
-          //   });
-
-          //   hashMap.get(index)!.style.visibility = 'hidden';
-          // }
-
-          // if (1 - Math.abs(k) < 0.3 && !sticked.has(index)) {
-          //   hashMap.get(index)!.style.visibility = 'hidden';
-          //   sticked.add(index);
-          //   const clone: HTMLElement = hashMap.get(index)!.cloneNode() as HTMLElement;
-          //   console.log(clone);
-          // } else {
-
-          //   hashMap.get(index)!.style.visibility = 'inherit';
-          //   hashMap.get(index)!.style.transform = `rotate(${k * deg}deg) scale(${0.5 + 0.5 * (1 - Math.abs(k))})`;
-          // }
-          // }
+          currentBlocks = newBlocks;
         })
       );
     });
@@ -122,13 +126,17 @@ export const Gallery = React.memo(
       <div id={`${hash}_container`} className={GalleryContainer}>
         <div id={`${hash}_scrollableContainer`} className={GalleryScrollableContainerStyle}>
           <div className={DebuggingDiv} id="debugger" />
-          {list.map((deg, index) => (
-            <div id={`${hash}_${index}`} className={FakeImageStyle} key={index}>
+          {Range(0, 40).map(index => (
+            <div className={FakeImageStyle} key={index}>
               {index}
             </div>
           ))}
         </div>
-        <div className={topLine} />
+        {Range(39, -1, -1).map(index => (
+          <div id={`${hash}_${index}`} className={ImageStyle} key={index} style={{ visibility: 'hidden' }}>
+            {index}
+          </div>
+        ))}
       </div>
     );
   },

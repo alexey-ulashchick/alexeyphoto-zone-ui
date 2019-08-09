@@ -1,9 +1,9 @@
-import { WHITE } from './../../styles/constants';
 import { YELLOW, flexWithCenteredContent, GREY, BLACK } from '../../styles/constants';
 import { style } from 'typestyle';
 
 export const IMG_HEIGTH = 250;
 export const IMG_GAP = 500;
+export const PILE_ZONE = 350;
 
 export const GalleryContainer = style({
   position: 'relative',
@@ -16,7 +16,7 @@ export const GalleryContainer = style({
       right: '50vw',
       height: '1px',
       backgroundColor: 'red',
-      top: '15%'
+      top: `${PILE_ZONE}px`
     },
     '&::after': {
       content: `''`,
@@ -25,7 +25,7 @@ export const GalleryContainer = style({
       right: '50vw',
       height: '1px',
       backgroundColor: 'red',
-      bottom: '15%'
+      bottom: `${PILE_ZONE}px`
     }
   }
 });
@@ -45,8 +45,9 @@ export const ImageStyle = style(
     margin: `0 auto ${IMG_GAP}px`,
     fontSize: '10em',
     boxShadow: `3px 3px 10px ${BLACK.toString()}`,
-    position: 'relative',
+    position: 'absolute',
     zIndex: 1,
+    pointerEvents: 'none',
     $nest: {
       '&:last-of-type': {
         marginBottom: '0'
@@ -61,7 +62,7 @@ export const FakeImageStyle = style(
     width: `${IMG_HEIGTH}px`,
     height: `${IMG_HEIGTH}px`,
     backgroundColor: YELLOW.toString(),
-    opacity: 0.2,
+    opacity: 0.02,
     margin: `${IMG_GAP}px auto`,
     fontSize: '10em',
     position: 'relative',
@@ -88,7 +89,7 @@ export const topLine = style({
   backgroundColor: 'green',
   bottom: '25%',
   pointerEvents: 'none',
-  opacity: 0.1,
+  opacity: 0.1
 });
 
 export const DebuggingDiv = style(
