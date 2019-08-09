@@ -1,8 +1,28 @@
 import * as React from 'react';
 import { Range } from 'immutable';
-import { ImageStyle, GalleryScrollableContainerStyle, DebuggingDiv, GalleryContainer, FakeImageStyle, topLine } from './GalleryStyle';
+import { ImageStyle, GalleryScrollableContainerStyle, DebuggingDiv, GalleryContainer, FakeImageStyle, topLine, IMG_HEIGTH, IMG_GAP } from './GalleryStyle';
 import { useEffect } from 'react';
-import { number } from 'prop-types';
+
+type visibilityFn = (scrollTop: number) => {start: number, end: number} | null;
+
+
+function getVisibilityCalcFn(viewportHeight: number, visibilityPadding: number, blockHeight: number, gap: number): visibilityFn {
+  const SCROLL_AREA_START = viewportHeight * visibilityPadding;
+  const BLOCK = blockHeight + gap;
+
+  return (scrollTop: number):  {start: number, end: number} | null => {
+    const end = scrollTop + viewportHeight;
+
+    const firstPotentialBlock = 1 + Math.floor((scrollTop - BLOCK) / BLOCK);
+    const firstBlock = scrollTop + SCROLL_AREA_START < BLOCK + firstPotentialBlock * BLOCK ? firstPotentialBlock : firstPotentialBlock + 1;
+
+    const lastPotentialBlock = Math.floor((end - gap) / BLOCK);
+    const lastBlock = end - SCROLL_AREA_START > gap + lastPotentialBlock * BLOCK ? lastPotentialBlock : lastPotentialBlock - 1;
+
+    return firstBlock > lastBlock ? null : {start: firstBlock, end: lastBlock};
+  };
+}
+
 
 export interface IGalleyProps {}
 
@@ -14,22 +34,15 @@ export const Gallery = React.memo(
       .map(() => Math.round(Math.random() * 20 - 10))
       .toList();
     const hashMap = new Map<number, HTMLElement>();
-    const clonesMap = new Map<number, HTMLElement>();
-    const sticked = new Set<number>();
-    const IMG_HEIGTH = 250;
-    const IMG_GAP = 500;
-    const BLOCK = IMG_GAP + IMG_HEIGTH;
+
+
     const PILE_ZONE = 0.15; //%
 
     useEffect(() => {
       const debuggerDiv: HTMLElement = document.getElementById('debugger')!;
       const scrollableContainer: HTMLElement = document.getElementById(`${hash}_scrollableContainer`)!;
-      const HEIGHT = scrollableContainer.clientHeight;
-      const SCROLL_AREA_START = PILE_ZONE * HEIGHT;
-      const SCROLL_AREA = HEIGHT - 2 * SCROLL_AREA_START;
 
-      console.log(`Initial scroll=${scrollableContainer.scrollTop}`);
-      console.log(`H=${HEIGHT}, START=${SCROLL_AREA_START}, AREA=${SCROLL_AREA}`);
+      const getVisibleBlocks: visibilityFn = getVisibilityCalcFn(scrollableContainer.clientHeight, PILE_ZONE, IMG_HEIGTH, IMG_GAP);
 
       list.forEach((_, index) => {
         hashMap.set(index, document.getElementById(`${hash}_${index}`)!);
@@ -37,16 +50,7 @@ export const Gallery = React.memo(
 
       scrollableContainer.addEventListener('scroll', () =>
         requestAnimationFrame(() => {
-          const start = scrollableContainer.scrollTop;
-          const end = start + HEIGHT;
-
-          const firstPotentialBlock = 1 + Math.floor((start - BLOCK) / BLOCK);
-          const firstBlock = start + SCROLL_AREA_START < BLOCK + firstPotentialBlock * BLOCK ? firstPotentialBlock : firstPotentialBlock + 1;
-
-          const lastPotentialBlock = Math.floor((end - IMG_GAP) / BLOCK);
-          const lastBlock = end - SCROLL_AREA_START > IMG_GAP + lastPotentialBlock * BLOCK ? lastPotentialBlock : lastPotentialBlock - 1;
-
-          debuggerDiv.innerHTML = `sroll=${end - SCROLL_AREA_START}, [${firstBlock},${lastBlock}]`;
+          debuggerDiv.innerHTML = `[${getVisibleBlocks(scrollableContainer.scrollTop)}]`;
 
           // debuggerDiv.innerHTML = `sroll=${start + SCROLL_AREA_START}, [${firstBlock},${lastBlock}]`;
 

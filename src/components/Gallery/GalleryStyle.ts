@@ -2,6 +2,9 @@ import { WHITE } from './../../styles/constants';
 import { YELLOW, flexWithCenteredContent, GREY, BLACK } from '../../styles/constants';
 import { style } from 'typestyle';
 
+export const IMG_HEIGTH = 250;
+export const IMG_GAP = 500;
+
 export const GalleryContainer = style({
   position: 'relative',
   overflow: 'hidden',
@@ -28,7 +31,7 @@ export const GalleryContainer = style({
 });
 
 export const GalleryScrollableContainerStyle = style({
-  height: '80vh',
+  height: '100vh',
   width: '50vw',
   overflow: 'auto',
   backgroundColor: GREY.toString()
@@ -36,10 +39,10 @@ export const GalleryScrollableContainerStyle = style({
 
 export const ImageStyle = style(
   {
-    width: '250px',
-    height: '250px',
+    width: `${IMG_HEIGTH}px`,
+    height: `${IMG_HEIGTH}px`,
     backgroundColor: YELLOW.toString(),
-    margin: '0 auto 500px',
+    margin: `0 auto ${IMG_GAP}px`,
     fontSize: '10em',
     boxShadow: `3px 3px 10px ${BLACK.toString()}`,
     position: 'relative',
@@ -55,11 +58,11 @@ export const ImageStyle = style(
 
 export const FakeImageStyle = style(
   {
-    width: '250px',
-    height: '250px',
+    width: `${IMG_HEIGTH}px`,
+    height: `${IMG_HEIGTH}px`,
     backgroundColor: YELLOW.toString(),
     opacity: 0.2,
-    margin: '500px auto',
+    margin: `${IMG_GAP}px auto`,
     fontSize: '10em',
     position: 'relative',
     $nest: {
