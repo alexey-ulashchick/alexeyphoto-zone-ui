@@ -3,10 +3,11 @@ import { Range, List } from 'immutable';
 import { ImageStyle, GalleryScrollableContainerStyle, DebuggingDiv, GalleryContainer, FakeImageStyle, IMG_HEIGTH, IMG_GAP, PILE_ZONE } from './GalleryStyle';
 import { useEffect } from 'react';
 
-type visibilityFn = (scrollTop: number) => { start: number; end: number } | null;
-type positionFn = (index: number, scrollTop: number) => { top: string; left: string; zIndex: number };
+type VisibilityFn = (scrollTop: number) => { start: number; end: number } | null;
+type PositionFn = (index: number, scrollTop: number) => { top: string; left: string; zIndex: number };
+type RndFactor = { offsetX: number; offsetY: number; deg: number };
 
-function getVisibilityCalcFn(viewportHeight: number, visibilityPadding: number, blockHeight: number, gap: number): visibilityFn {
+function getVisibilityCalcFn(viewportHeight: number, visibilityPadding: number, blockHeight: number, gap: number): VisibilityFn {
   const BLOCK = blockHeight + gap;
 
   return (scrollTop: number): { start: number; end: number } | null => {
@@ -22,31 +23,39 @@ function getVisibilityCalcFn(viewportHeight: number, visibilityPadding: number, 
   };
 }
 
-function getPositionCalcFn(viewportHeight: number, visibilityPadding: number, imgHeight: number, gap: number): positionFn {
+function getPositionCalcFn(viewportHeight: number, visibilityPadding: number, imgHeight: number, gap: number, rndList: List<RndFactor>): PositionFn {
   const BLOCK = imgHeight + gap;
+  const VISIBILITY_ZONE = viewportHeight - 2 * visibilityPadding;
   const deckSize = 40;
 
   return (index: number, scrollTop: number): { top: string; left: string; zIndex: number } => {
-    const top = scrollTop + visibilityPadding;
-    const bottom = scrollTop + viewportHeight - visibilityPadding;
+    const topLine = scrollTop + visibilityPadding;
+    const bottomLine = scrollTop + viewportHeight - visibilityPadding;
+    const rnd: RndFactor = rndList.get(index) || {offsetX: 0, offsetY: 0, deg: 0};
 
     //If Block is higher than top bar
-    if (BLOCK * (index + 1) < top) {
+    if (BLOCK * (index + 1) < topLine) {
       return {
-        top: `${visibilityPadding - imgHeight}px`,
-        left: `15vw`,
+        top: `calc(${visibilityPadding - imgHeight}px + ${rnd.offsetY}px)`,
+        left: `calc(15vw + ${rnd.offsetX}px)`,
         zIndex: index
       };
-    } else if (BLOCK * (index + 1) - imgHeight > bottom) {
+    } else if (BLOCK * (index + 1) - imgHeight > bottomLine) {
       return {
-        top: `calc(100% - ${visibilityPadding}px)`,
-        left: '15vw',
+        top: `calc(calc(100% - ${visibilityPadding}px) + ${rnd.offsetY}px)`,
+        left: `calc(15vw + ${rnd.offsetX}px)`,
         zIndex: deckSize - 1 - index
       };
     } else {
+      const top =  BLOCK * (index + 1) - imgHeight - scrollTop;
+      const kCenter = Math.abs((viewportHeight / 2) - (top + imgHeight /2)) / (VISIBILITY_ZONE /2 + imgHeight /2);
+      const quad = Math.pow(kCenter, 2);
+
+      console.log(viewportHeight, top, kCenter);
+
       return {
-        top: `${BLOCK * (index + 1) - imgHeight - scrollTop}px`,
-        left: '15vw',
+        top: `${top}px`,
+        left: `calc(15vw + ${quad * rnd.offsetX}px)`,
         zIndex: deckSize
       };
     }
@@ -57,46 +66,44 @@ export interface IGalleyProps {}
 
 export const Gallery = React.memo(
   (props: IGalleyProps) => {
-    const ANGLE_VARIATION = 10; // Angle randomization factor
-    const OFFSET_VARIATION = 30; // Offset randomization factor
+    const ANGLE_DEVIATION = 10; // Angle randomization factor
+    const POSITION_DEVIATION = 50; // Offset randomization factor
     const hash = Date.now();
-    const randomized: List<{ offsetX: number; offsetY: number; deg: number }> = Range(0, 40)
+    const hashMap = new Map<number, HTMLElement>();
+    const RND_LIST: List<RndFactor> = Range(0, 40)
       .map(() => ({
-        offsetX: Math.round(Math.random() * OFFSET_VARIATION),
-        offsetY: Math.round(Math.random() * OFFSET_VARIATION),
-        deg: Math.round(Math.random() * ANGLE_VARIATION * 2 - ANGLE_VARIATION)
+        offsetX: Math.round(Math.random() * 2 * POSITION_DEVIATION - POSITION_DEVIATION),
+        offsetY: 0, //Math.round(Math.random() * 2 * POSITION_DEVIATION - POSITION_DEVIATION),
+        deg: Math.round(Math.random() * ANGLE_DEVIATION * 2 - ANGLE_DEVIATION)
       }))
       .toList();
-    console.log(randomized.toJS());
-
-    const hashMap = new Map<number, HTMLElement>();
 
     useEffect(() => {
       const debuggerDiv: HTMLElement = document.getElementById('debugger')!;
 
       const scrollableContainer: HTMLElement = document.getElementById(`${hash}_scrollableContainer`)!;
-      const getVisibleBlocks: visibilityFn = getVisibilityCalcFn(scrollableContainer.clientHeight, PILE_ZONE, IMG_HEIGTH, IMG_GAP);
-      const getPosition: positionFn = getPositionCalcFn(scrollableContainer.clientHeight, PILE_ZONE, IMG_HEIGTH, IMG_GAP);
+      const visibilityFn: VisibilityFn = getVisibilityCalcFn(scrollableContainer.clientHeight, PILE_ZONE, IMG_HEIGTH, IMG_GAP);
+      const positionFn: PositionFn = getPositionCalcFn(scrollableContainer.clientHeight, PILE_ZONE, IMG_HEIGTH, IMG_GAP, RND_LIST);
 
       Range(0, 40).forEach(index => {
         const el: HTMLElement = document.getElementById(`${hash}_${index}`)!;
 
         hashMap.set(index, el);
 
-        const { top, left, zIndex } = getPosition(index, scrollableContainer.scrollTop);
+        const { top, left, zIndex } = positionFn(index, scrollableContainer.scrollTop);
         el.style.top = top;
         el.style.left = left;
         el.style.zIndex = String(zIndex);
         el.style.visibility = 'inherit';
       });
 
-      let currentBlocks = getVisibleBlocks(scrollableContainer.scrollTop);
+      let currentBlocks = visibilityFn(scrollableContainer.scrollTop);
 
       scrollableContainer.addEventListener('scroll', () =>
         requestAnimationFrame(() => {
-          debuggerDiv.innerHTML = `[${JSON.stringify(getVisibleBlocks(scrollableContainer.scrollTop))}]`;
+          debuggerDiv.innerHTML = `[${JSON.stringify(visibilityFn(scrollableContainer.scrollTop))}]`;
 
-          const newBlocks = getVisibleBlocks(scrollableContainer.scrollTop);
+          const newBlocks = visibilityFn(scrollableContainer.scrollTop);
 
           if (currentBlocks === null && newBlocks === null) {
             return;
@@ -110,7 +117,7 @@ export const Gallery = React.memo(
               : { start: Math.min(currentBlocks.start, newBlocks.start), end: Math.max(currentBlocks.end, newBlocks.end) };
 
           for (let index = start; index <= end; index++) {
-            const { top, left, zIndex } = getPosition(index, scrollableContainer.scrollTop);
+            const { top, left, zIndex } = positionFn(index, scrollableContainer.scrollTop);
             const el = hashMap.get(index)!;
             el.style.top = top;
             el.style.left = left;
@@ -132,7 +139,7 @@ export const Gallery = React.memo(
             </div>
           ))}
         </div>
-        {Range(39, -1, -1).map(index => (
+        {Range(0, 40).map(index => (
           <div id={`${hash}_${index}`} className={ImageStyle} key={index} style={{ visibility: 'hidden' }}>
             {index}
           </div>

@@ -3,7 +3,7 @@ import { style } from 'typestyle';
 
 export const IMG_HEIGTH = 250;
 export const IMG_GAP = 500;
-export const PILE_ZONE = 350;
+export const PILE_ZONE = 150;
 
 export const GalleryContainer = style({
   position: 'relative',
