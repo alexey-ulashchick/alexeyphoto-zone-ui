@@ -1,33 +1,13 @@
 import { YELLOW, flexWithCenteredContent, GREY, BLACK } from '../../styles/constants';
 import { style } from 'typestyle';
 
-export const IMG_HEIGTH = 250;
-export const IMG_GAP = 500;
-export const PILE_ZONE = 150;
+export const IMG_HEIGTH = 450;
+export const IMG_GAP = 750;
+export const PILE_ZONE = 250;
 
 export const GalleryContainer = style({
   position: 'relative',
   overflow: 'hidden',
-  $nest: {
-    '&::before': {
-      content: `''`,
-      position: 'absolute',
-      left: 0,
-      right: '50vw',
-      height: '1px',
-      backgroundColor: 'red',
-      top: `${PILE_ZONE}px`
-    },
-    '&::after': {
-      content: `''`,
-      position: 'absolute',
-      left: 0,
-      right: '50vw',
-      height: '1px',
-      backgroundColor: 'red',
-      bottom: `${PILE_ZONE}px`
-    }
-  }
 });
 
 export const GalleryScrollableContainerStyle = style({
@@ -48,33 +28,10 @@ export const ImageStyle = style(
     position: 'absolute',
     zIndex: 1,
     pointerEvents: 'none',
+    willChange: 'transform, top, left',
     $nest: {
       '&:last-of-type': {
         marginBottom: '0'
-      }
-    }
-  },
-  flexWithCenteredContent
-);
-
-export const FakeImageStyle = style(
-  {
-    width: `${IMG_HEIGTH}px`,
-    height: `${IMG_HEIGTH}px`,
-    backgroundColor: YELLOW.toString(),
-    opacity: 0.02,
-    margin: `${IMG_GAP}px auto`,
-    fontSize: '10em',
-    position: 'relative',
-    $nest: {
-      '&:after': {
-        content: 'A',
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        top: '50%',
-        height: '1px',
-        backgroundColor: YELLOW.toString()
       }
     }
   },
