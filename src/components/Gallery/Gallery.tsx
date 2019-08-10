@@ -28,37 +28,35 @@ function getPositionCalcFn(viewportHeight: number, visibilityPadding: number, im
   const VISIBILITY_ZONE = viewportHeight - 2 * visibilityPadding;
   const deckSize = 40;
 
+  function calcX(top: number, initialOffset: number): number {
+    const kCenter = Math.abs((viewportHeight / 2) - (top + imgHeight /2)) / (VISIBILITY_ZONE /2 + imgHeight /2);
+    return kCenter * kCenter * initialOffset;
+  }
+
   return (index: number, scrollTop: number): { top: string; left: string; zIndex: number } => {
-    const topLine = scrollTop + visibilityPadding;
-    const bottomLine = scrollTop + viewportHeight - visibilityPadding;
     const rnd: RndFactor = rndList.get(index) || {offsetX: 0, offsetY: 0, deg: 0};
+    const topLine = scrollTop + visibilityPadding + rnd.offsetY;
+    const bottomLine = scrollTop + viewportHeight - visibilityPadding - rnd.offsetY;
+
+    let top: number, zIndex: number;
 
     //If Block is higher than top bar
     if (BLOCK * (index + 1) < topLine) {
-      return {
-        top: `calc(${visibilityPadding - imgHeight}px + ${rnd.offsetY}px)`,
-        left: `calc(15vw + ${rnd.offsetX}px)`,
-        zIndex: index
-      };
+      top = visibilityPadding - imgHeight + rnd.offsetY;
+      zIndex = index;
     } else if (BLOCK * (index + 1) - imgHeight > bottomLine) {
-      return {
-        top: `calc(calc(100% - ${visibilityPadding}px) + ${rnd.offsetY}px)`,
-        left: `calc(15vw + ${rnd.offsetX}px)`,
-        zIndex: deckSize - 1 - index
-      };
+      top = viewportHeight - visibilityPadding - rnd.offsetY;
+      zIndex = deckSize - 1 - index;
     } else {
-      const top =  BLOCK * (index + 1) - imgHeight - scrollTop;
-      const kCenter = Math.abs((viewportHeight / 2) - (top + imgHeight /2)) / (VISIBILITY_ZONE /2 + imgHeight /2);
-      const quad = Math.pow(kCenter, 2);
-
-      console.log(viewportHeight, top, kCenter);
-
-      return {
-        top: `${top}px`,
-        left: `calc(15vw + ${quad * rnd.offsetX}px)`,
-        zIndex: deckSize
-      };
+      top =  BLOCK * (index + 1) - imgHeight - scrollTop;
+      zIndex = deckSize;
     }
+
+    return {
+      top: `${top}px`,
+      left: `calc(15vw + ${calcX(top, rnd.offsetX)}px)`,
+      zIndex
+    };
   };
 }
 
@@ -67,13 +65,13 @@ export interface IGalleyProps {}
 export const Gallery = React.memo(
   (props: IGalleyProps) => {
     const ANGLE_DEVIATION = 10; // Angle randomization factor
-    const POSITION_DEVIATION = 50; // Offset randomization factor
+    const POSITION_DEVIATION = 150; // Offset randomization factor
     const hash = Date.now();
     const hashMap = new Map<number, HTMLElement>();
     const RND_LIST: List<RndFactor> = Range(0, 40)
       .map(() => ({
         offsetX: Math.round(Math.random() * 2 * POSITION_DEVIATION - POSITION_DEVIATION),
-        offsetY: 0, //Math.round(Math.random() * 2 * POSITION_DEVIATION - POSITION_DEVIATION),
+        offsetY: Math.round(Math.random() * POSITION_DEVIATION),
         deg: Math.round(Math.random() * ANGLE_DEVIATION * 2 - ANGLE_DEVIATION)
       }))
       .toList();
