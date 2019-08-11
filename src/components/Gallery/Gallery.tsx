@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { Range, List } from 'immutable';
-import { ImageStyle, GalleryScrollableContainerStyle, GalleryContainer, IMG_HEIGTH, IMG_GAP, PILE_ZONE } from './GalleryStyle';
+import { ImageStyle, GalleryScrollableContainerStyle, GalleryContainer } from './GalleryStyle';
 import { useEffect } from 'react';
-import { getVisibilityCalcFn, VisibilityFn, RndFactor, PositionFn, getPositionCalcFn, ElStyle } from './GelleyHelpers';
+import { getVisibilityCalcFn, VisibilityFn, RndFactor, PositionFn, getPositionCalcFn, ElStyle, scaleFn } from './GelleyHelpers';
 
 const DECK_SIZE = 20;
-const ANGLE_DEVIATION = 10; // Angle randomization factor
-const POSITION_DEVIATION = 15; // Offset randomization factor
+const ANGLE_DEVIATION = 0; // Angle randomization factor
+const POSITION_DEVIATION = 0; // Offset randomization factor
 const RND_LIST: List<RndFactor> = Range(0, DECK_SIZE)
   .map(() => ({
     offsetX: Math.round(Math.random() * 2 * POSITION_DEVIATION - POSITION_DEVIATION),
@@ -34,8 +34,19 @@ export const Gallery = React.memo(
 
     useEffect(() => {
       const scrollableContainer: HTMLElement = document.getElementById(`${hash}_scrollableContainer`)!;
-      const visibilityFn: VisibilityFn = getVisibilityCalcFn(scrollableContainer.clientHeight, PILE_ZONE, IMG_HEIGTH, IMG_GAP);
-      const positionFn: PositionFn = getPositionCalcFn(scrollableContainer.clientHeight, PILE_ZONE, IMG_HEIGTH, IMG_GAP, RND_LIST, DECK_SIZE);
+
+      const VH = scrollableContainer.clientHeight;
+      const VW = scrollableContainer.clientWidth;
+      const BOX_SIZE = Math.min(VH, VW) * 0.95;
+      const IMG_GAP = BOX_SIZE * 0.25;
+
+      const DESCALED = BOX_SIZE * scaleFn(1);
+      const PILE_ZONE = BOX_SIZE - DESCALED - (BOX_SIZE - DESCALED)/2 + BOX_SIZE * scaleFn(1) * 0.3;
+
+      (scrollableContainer.firstElementChild! as HTMLElement).style.height = `${(BOX_SIZE + IMG_GAP) * DECK_SIZE + IMG_GAP}px`;
+
+      const visibilityFn: VisibilityFn = getVisibilityCalcFn(scrollableContainer.clientHeight, PILE_ZONE, BOX_SIZE, IMG_GAP);
+      const positionFn: PositionFn = getPositionCalcFn(scrollableContainer.clientHeight, PILE_ZONE, BOX_SIZE, IMG_GAP, RND_LIST, DECK_SIZE);
 
       Range(0, DECK_SIZE).forEach(index => {
         const el: HTMLElement = document.getElementById(`${hash}_${index}`)!;
@@ -44,6 +55,8 @@ export const Gallery = React.memo(
 
         applyStyle(index, positionFn(index, scrollableContainer.scrollTop));
         el.style.visibility = 'inherit';
+        el.style.width = `${BOX_SIZE}px`;
+        el.style.height = `${BOX_SIZE}px`;
       });
 
       let currentBlocks = visibilityFn(scrollableContainer.scrollTop);
@@ -75,7 +88,7 @@ export const Gallery = React.memo(
     return (
       <div id={`${hash}_container`} className={GalleryContainer}>
         <div id={`${hash}_scrollableContainer`} className={GalleryScrollableContainerStyle}>
-          <div style={{ height: `${(IMG_HEIGTH + IMG_GAP) * DECK_SIZE + IMG_GAP}px` }} />
+          <div></div>
         </div>
         {Range(0, DECK_SIZE).map(index => (
           <div id={`${hash}_${index}`} className={ImageStyle} key={index} style={{ visibility: 'hidden' }}>
