@@ -59,7 +59,7 @@ export function getPositionCalcFn(vh: number, padding: number, imgHeight: number
 
     return {
       top: `${top}px`,
-      left: `calc(15vw + ${offsetX}px)`,
+      left: `calc(50% + ${offsetX - (imgHeight/2)}px)`,
       transform: `rotate(${deg}deg) scale(${scale}) translateZ(0)`,
       zIndex
     };

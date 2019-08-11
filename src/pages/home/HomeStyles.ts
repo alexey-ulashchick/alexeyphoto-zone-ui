@@ -35,7 +35,8 @@ export const NavClass = style(
     { maxWidth: '600px' },
     {
       bottom: '5em',
-      top: 'inherit'
+      top: 'inherit',
+      alignItems: 'flex-end'
     }
   )
 );
