@@ -6,6 +6,7 @@ export const GalleryContainer = style({
   overflow: 'hidden',
 });
 
+
 export const GalleryScrollableContainerStyle = style({
   height: '100vh',
   width: '100vw',

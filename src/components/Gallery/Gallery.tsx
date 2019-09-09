@@ -5,8 +5,8 @@ import { useEffect } from 'react';
 import { getVisibilityCalcFn, VisibilityFn, RndFactor, PositionFn, getPositionCalcFn, ElStyle, scaleFn } from './GelleyHelpers';
 
 const DECK_SIZE = 20;
-const ANGLE_DEVIATION = 0; // Angle randomization factor
-const POSITION_DEVIATION = 0; // Offset randomization factor
+const ANGLE_DEVIATION = 5; // Angle randomization factor
+const POSITION_DEVIATION = 20; // Offset randomization factor
 const RND_LIST: List<RndFactor> = Range(0, DECK_SIZE)
   .map(() => ({
     offsetX: Math.round(Math.random() * 2 * POSITION_DEVIATION - POSITION_DEVIATION),
