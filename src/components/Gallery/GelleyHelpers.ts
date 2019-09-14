@@ -27,12 +27,12 @@ export function getVisibilityCalcFn(viewportHeight: number, visibilityPadding: n
 /**
  * Prepare function which returns styles that need to be applied to the image based on current scrollTop position.
  */
-export function getPositionCalcFn(vh: number, padding: number, imgHeight: number, gap: number, rndList: List<RndFactor>, deckSize: number): PositionFn {
-  const BLOCK = imgHeight + gap;
+export function getPositionCalcFn(vh: number, padding: number, boxWidth: number, boxHeight: number, gap: number, rndList: List<RndFactor>, deckSize: number): PositionFn {
+  const BLOCK = boxHeight + gap;
   const VISIBILITY_ZONE = vh - 2 * padding;
 
   function calcX(top: number, initialOffset: number, initialDeg: number): { offsetX: number; deg: number; scale: number } {
-    const kCenter = Math.abs(vh / 2 - (top + imgHeight / 2)) / (VISIBILITY_ZONE / 2 + imgHeight / 2);
+    const kCenter = Math.abs(vh / 2 - (top + boxHeight / 2)) / (VISIBILITY_ZONE / 2 + boxHeight / 2);
     return { offsetX: quadFn(initialOffset, kCenter), deg: quadFn(initialDeg, kCenter), scale: scaleFn(kCenter) };
   }
 
@@ -45,13 +45,13 @@ export function getPositionCalcFn(vh: number, padding: number, imgHeight: number
 
     //If Block is higher than top bar
     if (BLOCK * (index + 1) < topLine) {
-      top = padding - imgHeight + rnd.offsetY;
+      top = padding - boxHeight + rnd.offsetY;
       zIndex = index;
-    } else if (BLOCK * (index + 1) - imgHeight > bottomLine) {
+    } else if (BLOCK * (index + 1) - boxHeight > bottomLine) {
       top = vh - padding - rnd.offsetY;
       zIndex = deckSize - 1 - index;
     } else {
-      top = BLOCK * (index + 1) - imgHeight - scrollTop;
+      top = BLOCK * (index + 1) - boxHeight - scrollTop;
       zIndex = deckSize;
     }
 
@@ -59,7 +59,7 @@ export function getPositionCalcFn(vh: number, padding: number, imgHeight: number
 
     return {
       top: `${top}px`,
-      left: `calc(50% + ${offsetX - (imgHeight/2)}px)`,
+      left: `calc(50% + ${offsetX - (boxWidth/2)}px)`,
       transform: `rotate(${deg}deg) scale(${scale}) translateZ(0)`,
       zIndex
     };

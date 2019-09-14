@@ -37,16 +37,18 @@ export const Gallery = React.memo(
 
       const VH = scrollableContainer.clientHeight;
       const VW = scrollableContainer.clientWidth;
-      const BOX_SIZE = Math.min(VH, VW) * 0.95;
-      const IMG_GAP = BOX_SIZE * 0.25;
 
-      const DESCALED = BOX_SIZE * scaleFn(1);
-      const PILE_ZONE = BOX_SIZE - DESCALED - (BOX_SIZE - DESCALED)/2 + BOX_SIZE * scaleFn(1) * 0.3;
+      const BOX_WIDTH = VW * 0.95;
+      const BOX_HEIGHT = VH * 0.95;
+      const IMG_GAP = BOX_HEIGHT * 0.25;
 
-      (scrollableContainer.firstElementChild! as HTMLElement).style.height = `${(BOX_SIZE + IMG_GAP) * DECK_SIZE + IMG_GAP}px`;
+      const DESCALED = BOX_HEIGHT * scaleFn(1);
+      const PILE_ZONE = BOX_HEIGHT - DESCALED - (BOX_HEIGHT - DESCALED)/2 + BOX_HEIGHT * scaleFn(1) * 0.3;
 
-      const visibilityFn: VisibilityFn = getVisibilityCalcFn(scrollableContainer.clientHeight, PILE_ZONE, BOX_SIZE, IMG_GAP);
-      const positionFn: PositionFn = getPositionCalcFn(scrollableContainer.clientHeight, PILE_ZONE, BOX_SIZE, IMG_GAP, RND_LIST, DECK_SIZE);
+      (scrollableContainer.firstElementChild! as HTMLElement).style.height = `${(BOX_HEIGHT + IMG_GAP) * DECK_SIZE + IMG_GAP}px`;
+
+      const visibilityFn: VisibilityFn = getVisibilityCalcFn(scrollableContainer.clientHeight, PILE_ZONE, BOX_HEIGHT, IMG_GAP);
+      const positionFn: PositionFn = getPositionCalcFn(scrollableContainer.clientHeight, PILE_ZONE, BOX_WIDTH, BOX_HEIGHT, IMG_GAP, RND_LIST, DECK_SIZE);
 
       Range(0, DECK_SIZE).forEach(index => {
         const el: HTMLElement = document.getElementById(`${hash}_${index}`)!;
@@ -55,8 +57,8 @@ export const Gallery = React.memo(
 
         applyStyle(index, positionFn(index, scrollableContainer.scrollTop));
         el.style.visibility = 'inherit';
-        el.style.width = `${BOX_SIZE}px`;
-        el.style.height = `${BOX_SIZE}px`;
+        el.style.width = `${BOX_WIDTH}px`;
+        el.style.height = `${BOX_HEIGHT}px`;
       });
 
       let currentBlocks = visibilityFn(scrollableContainer.scrollTop);
