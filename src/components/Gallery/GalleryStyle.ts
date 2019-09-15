@@ -1,4 +1,4 @@
-import { YELLOW, flexWithCenteredContent, GREY, BLACK } from '../../styles/constants';
+import { GREY, BLACK } from '../../styles/constants';
 import { style } from 'typestyle';
 
 export const GalleryContainer = style({
@@ -15,9 +15,9 @@ export const GalleryScrollableContainerStyle = style({
   backgroundColor: GREY.toString()
 });
 
-export const ImageStyle = style(
+export const ImageContainerStyle = style(
   {
-    backgroundColor: YELLOW.toString(),
+    // backgroundColor: YELLOW.toString(),
     fontSize: '10em',
     boxShadow: `3px 3px 10px ${BLACK.toString()}`,
     position: 'absolute',
@@ -30,5 +30,10 @@ export const ImageStyle = style(
       }
     }
   },
-  flexWithCenteredContent
+  // flexWithCenteredContent
 );
+
+export const ImageStyle = style({
+  minWidth: '100%',
+  minHeight: '100%',
+});

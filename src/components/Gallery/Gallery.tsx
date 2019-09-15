@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Range, List } from 'immutable';
-import { ImageStyle, GalleryScrollableContainerStyle, GalleryContainer } from './GalleryStyle';
+import { ImageContainerStyle, GalleryScrollableContainerStyle, GalleryContainer, ImageStyle } from './GalleryStyle';
 import { useEffect } from 'react';
 import { getVisibilityCalcFn, VisibilityFn, RndFactor, PositionFn, getPositionCalcFn, ElStyle, scaleFn } from './GelleyHelpers';
 
@@ -15,7 +15,9 @@ const RND_LIST: List<RndFactor> = Range(0, DECK_SIZE)
   }))
   .toList();
 
-export interface IGalleyProps {}
+export interface IGalleyProps {
+  files: List<string>;
+}
 
 export const Gallery = React.memo(
   (props: IGalleyProps) => {
@@ -93,8 +95,8 @@ export const Gallery = React.memo(
           <div></div>
         </div>
         {Range(0, DECK_SIZE).map(index => (
-          <div id={`${hash}_${index}`} className={ImageStyle} key={index} style={{ visibility: 'hidden' }}>
-            {index}
+          <div id={`${hash}_${index}`} className={ImageContainerStyle} key={index} style={{ visibility: 'hidden' }}>
+            <img src={props.files.get(index)} alt={props.files.get(index)} className={ImageStyle}/>
           </div>
         ))}
       </div>
